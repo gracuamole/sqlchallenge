@@ -2,6 +2,12 @@
 USE pizza_runner;
 ````
 
+# Data Cleaning and Preparation
+Summary of data manipulation queries done:
+- Remove NaN / NULL values and replace with blanks
+- Convert VARCHAR columns to DATETIME, FLOAT, INT types
+- Remove units from cells (eg 'km' or 'minutes')
+
 ````sql
 CREATE TEMPORARY TABLE customer_orders_temporary
 SELECT
@@ -86,19 +92,28 @@ WHERE distance = 0;
 SELECT * FROM runner_orders_temporary;
 ````
 
-# ------ case study 1 -------
+# Case Study 2: A Pizza Metrics
+
+### Question 1: How many pizzas were ordered?
 ````sql
 SELECT COUNT(*) AS total_pizza
 FROM customer_orders;
 ````
+| Total Pizzas | 
+| ------------- | 
+| 14 | 
 
-
+### Question 2: How many unique customer orders were made?
 ````sql
 SELECT 
 COUNT(DISTINCT(order_id)) AS unique_orders
 FROM customer_orders;
 ````
+| Unique Orders | 
+| ------------- | 
+| 10 | 
 
+### Question 3: How many successful orders were delivered by each runner?
 ````sql
 SELECT
 runner_id,
@@ -108,6 +123,13 @@ WHERE duration != 0
 GROUP BY runner_id;
 ````
 
+| Runner ID  | Successful Orders|
+| ------------- | ------------- |
+| 1  | 4 |
+| 2  | 3  |
+| 3  | 1  |
+
+### Question 4: How many of each type of pizza was delivered?
 ````sql
 SELECT
 n.pizza_name,
@@ -121,6 +143,12 @@ WHERE duration != 0
 GROUP BY n.pizza_name;
 ````
 
+| Pizza Name  | Successful Orders|
+| ------------- | ------------- |
+| Meatlovers | 9 |
+| Vegetarian  | 3  |
+
+### Question 5: How many Vegetarian and Meatlovers were ordered by each customer?
 ````sql
 SELECT
 	c.customer_id,
@@ -133,7 +161,9 @@ JOIN pizza_names as n
 GROUP BY c.customer_id, n.pizza_name
 ORDER BY c.customer_id;
 ````
+<img width="195" alt="Screenshot 2022-06-18 at 3 28 29 PM" src="https://user-images.githubusercontent.com/86179638/174427691-05f590f3-f6c4-432b-8bdc-13f54480186d.png">
 
+### Question 6: What was the maximum number of pizzas delivered in a single order?
 ````sql
 WITH pizza_order AS
 (
@@ -151,8 +181,15 @@ SELECT
 FROM pizza_order;
 ````
 
-# logic: if 0 change, then exclusions and extras are NULL
-# if at least 1 change, then exclusions OR extras will be NON-NULL
+| Max Pizza Ordered| 
+| ------------- | 
+| 3 | 
+
+### Question 7: For each customer, how many delivered pizzas had at least 1 change and how many had no changes?
+### My Thought Process:
+logic: if 0 change, then exclusions and extras are NULL
+if at least 1 change, then exclusions OR extras will be NON-NULL
+
 ````sql
 SELECT
 	c.customer_id,
@@ -176,7 +213,9 @@ ON c.order_id = r.order_id
 WHERE r.distance != ' '
 GROUP BY c.customer_id;
 ````
+<img width="235" alt="Screenshot 2022-06-18 at 3 30 34 PM" src="https://user-images.githubusercontent.com/86179638/174427757-9603535e-9357-4725-9b6d-63f77e62a062.png">
 
+### Question 8: How many pizzas were delivered that had both exclusions and extras?
 ````sql
 SELECT
 	COUNT(c.pizza_id) AS pizza_count
@@ -190,6 +229,11 @@ WHERE
     ;
 ````
 
+| Pizza Count| 
+| ------------- | 
+| 1 | 
+
+### Question 9: What was the total volume of pizzas ordered for each hour of the day?
 ````sql
 SELECT
 	HOUR(order_time) AS hour_of_day,
@@ -198,7 +242,16 @@ FROM customer_orders_temporary
 GROUP BY hour_of_day
 ORDER BY hour_of_day;
 ````
+| Hour of Day  | Total Pizza|
+| ------------- | ------------- |
+| 11:00AM | 1|
+| 1:00PM | 4  |
+| 6:00PM | 3  |
+| 7:00PM | 1 |
+| 9:00PM | 5 |
+| 11:00PM | 4 |
 
+### Question 10: What was the volume of orders for each day of the week?
 ````sql
 SELECT
 DAYNAME(order_time) AS day_of_week,
@@ -206,3 +259,5 @@ SUM(pizza_id) as total_pizza
 FROM customer_orders_temporary
 GROUP BY day_of_week;
 ````
+<img width="156" alt="Screenshot 2022-06-18 at 3 32 46 PM" src="https://user-images.githubusercontent.com/86179638/174427807-322a3301-ace8-4da6-a46c-8bb584406be1.png">
+
